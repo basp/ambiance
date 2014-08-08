@@ -7,9 +7,21 @@ var store = db.createStore()
 
 var root = store.create()
 root.name = 'root object'
-root.motd = 'Cold virgin storage.\n'
+root.motd = 'Cold storage.\n'
 
 var connections = []
+
+function wall(socket, msg: string) {
+    if (!socket.$$wizard) {
+        socket.write('You suck.\n')
+        return
+    }
+
+    for (var i = 0; i < connections.length; i++) {
+        var c = connections[i]
+        c.write(msg)
+    }
+}
 
 function kick(socket) {
     var idx = connections.indexOf(socket)
@@ -19,9 +31,17 @@ function kick(socket) {
 }
 
 function allow(socket) {
+    // This is basically our player
     socket.$$id = socket.remoteAddress + ':' + socket.remotePort
+    socket.$$notify = (msg) => this.write(msg)
+    socket.$$wizard = true
+
     connections.push(socket)
-    console.log('Allowing new jerk from ' + socket.$$id + ', connections at ' + connections.length);
+
+    console.log(
+        'Allowing new jerk from ' + socket.$$id +
+        ', connections at ' + connections.length
+    );
 }
 
 var server = net.createServer((socket) => {
@@ -31,7 +51,7 @@ var server = net.createServer((socket) => {
         var tokens = tokenizer(data.toString())
         var cmd = parser(tokens)
         console.log(cmd)
-        socket.write(data)
+        wall(socket, data)
     })
 
     socket.on('close', () => {
