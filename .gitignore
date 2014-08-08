@@ -6,6 +6,10 @@
 *.user
 *.sln.docstates
 
+# Generated js and maps
+*.js
+*.js.map
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
