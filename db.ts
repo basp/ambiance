@@ -1,6 +1,6 @@
 ﻿exports.version = '0.0.0'
 
-exports.createStore = () => new MemoryStore()
+exports.createMemoryStore = () => new MemoryStore()
 
 class MemoryStore {
     private objects = {}
