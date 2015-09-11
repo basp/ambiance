@@ -1,16 +1,55 @@
-﻿class World {
-    private objects = {}
+class IdGen {
+	private last: number;
+	
+	constructor(seed = 0) {
+		this.last = seed;
+	}
+	
+	next() {
+		this.last += 1;
+		return this.last;
+	}
+}
 
-    create() {
-        var id = 0
-        var obj = { id: id }
-        this.objects[id] = obj
-        return obj
-    }
+var ids = new IdGen();
 
-    object(id) {
-        return this.objects[id]
-    }
+interface Object {
+	id(): number;
+	parent(): Object;
+	location(): Object;
+	contents(): Object[];
+	add(obj: Object): void;
+	remove(obj: Object): void;
+}
 
+const Nothing = { 
+	id: () => -1,
+	parent: () => Nothing,
+	location: () => Nothing,
+	contents: () => [],
+	add: obj => {},
+	remove: obj => {}
+};
 
+function create(parent?: Object) {
+	parent = parent || Nothing;
+	let id = ids.next();
+	var contents = [];
+	return {
+		id: () => id,
+		parent: () => parent,
+		location: () => Nothing,
+		contents: () => contents,
+		add: obj => { contents.push(obj) },
+		remove: obj => {
+			var i = contents.indexOf(obj);
+			contents.splice(i, 1);
+		}
+	}	
+}
+
+export { 
+	Object, 
+	Nothing, 
+	create 
 }

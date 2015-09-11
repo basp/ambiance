@@ -1,7 +1,22 @@
 {
-  "name": "ambiance",
-  "version": "0.0.0",
+  "name": "yasmin",
+  "version": "0.1.0",
+  "description": "Modern LambdaMOO clone.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/basp/yasmin"
+  },
+  "author": "basp",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/basp/yasmin/issues"
+  },
+  "homepage": "https://github.com/basp/yasmin",
   "dependencies": {
-    "lodash": "^2.4.1"
+    "byline": "^4.2.1",
+    "string": "^3.3.1"
+  },
+  "devDependencies": {
+    "jasmine": "^2.3.2"
   }
 }

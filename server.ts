@@ -1,68 +1,80 @@
-﻿var net = require('net');
-var db = require('./db')
-var tokenizer = require('./tokenizer')
-var parser = require('./parser')
+/// <reference path="typings/tsd.d.ts" />
 
-var store = db.createStore()
+import net = require('net');
+import byline = require('byline');
+import { tokenize } from './tokenizer';
+import { parse } from './parser';
+import { Object, Nothing } from './world'
 
-var root = store.create()
-root.name = 'root object'
-root.motd = 'Cold storage.\n'
+const VERSION = "0.1";
 
-var connections = []
-
-function wall(socket, msg: string) {
-    if (!socket.$$wizard) {
-        socket.write('You suck.\n')
-        return
-    }
-
-    for (var i = 0; i < connections.length; i++) {
-        var c = connections[i]
-        c.write(msg)
-    }
+interface ConnectionState {
+	handle(data: Buffer): ConnectionState;
 }
 
-function kick(socket) {
-    var idx = connections.indexOf(socket)
-    console.log('Removing jerk ' + socket.$$id + ' (index ' + idx + ')')
-    connections.splice(idx, 1)
-    console.log(connections.length + ' connections remaining')
+class Connection {
+	public socket: net.Socket;
+	public state: ConnectionState;
+	public player: Object;
+	
+	constructor(socket: net.Socket) {
+		this.socket = socket;
+		this.state = new ConnectedState(this);
+		this.player = Nothing;
+	}
+	
+	notify(msg: string) {
+		this.socket.write(`${msg}\r\n`);
+	}
 }
 
-function allow(socket) {
-    // This is basically our player
-    socket.$$id = socket.remoteAddress + ':' + socket.remotePort
-    socket.$$notify = (msg) => this.write(msg)
-    socket.$$wizard = true
-
-    connections.push(socket)
-
-    console.log(
-        'Allowing new jerk from ' + socket.$$id +
-        ', connections at ' + connections.length
-    );
+class ConnectedState implements ConnectionState {
+	private conn: Connection;
+	
+	constructor(conn: Connection) {
+		this.conn = conn;
+	}
+	
+	handle(data) {
+		var args = tokenize(data);
+		this.conn.notify(JSON.stringify(args));
+		return new ConnectedState(this.conn);				
+	}
 }
 
-var server = net.createServer((socket) => {
-    allow(socket)
+class IdentifiedState implements ConnectionState {
+	private conn: Connection;
+	
+	constructor(conn: Connection) {
+		this.conn = conn;
+	}
+	
+	handle(data) {
+		var spec = parse(data);
+		this.conn.notify(JSON.stringify(spec));
+		return new IdentifiedState(this.conn);		
+	}
+}
 
-    socket.on('data', (data) => {
-        var tokens = tokenizer(data.toString())
-        var cmd = parser(tokens)
-        console.log(cmd)
-        wall(socket, data)
-    })
+var connections: Connection[] = [];
 
-    socket.on('close', () => {
-        kick(socket)
-    });
+var server = net.createServer(socket => {
+	var conn = new Connection(socket);
+	connections.push(conn);
+	conn.notify('*** connected ***');
+	
+	byline(socket).on('data', data => {
+		conn.state = conn.state.handle(data);
+	});
+	
+	socket.on('error', err => {
+		console.log(err);
+	});
+	
+	socket.on('close', () => {
+		var i = connections.indexOf(conn);
+		connections.splice(i, 1);
+	});
+});
 
-    socket.on('error', (err) => {
-        // The `close` event will be called immediately afterwards:
-        // http://nodejs.org/api/net.html#net_event_error_1
-        console.log('Jerk from ' + socket.$$id + ' abandoned with: ' + err.toString())
-    })
-})
-
-server.listen(8888)
+server.listen(6666);

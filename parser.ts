@@ -1,72 +1,87 @@
-﻿module.exports = (tokens: string[]) => parse(tokens)
+/// <reference path="typings/tsd.d.ts" />
 
-function parse(tokens: string[]) {
-    var args = tokens.splice(1)
-    console.log(args);
-    var pargs = parseArgs(args)
-    return {
-        verb: tokens[0],
-        args: args,
-        argstr: args.join(' '),
-        dobjstr: pargs.dobjstr,
-        prepstr: pargs.prepstr,
-        iobjstr: pargs.iobjstr
-    }
-} 
+import { tokenize } from './tokenizer';
 
 var prepositions = {
     'with': true,
     'using': true,
     'at': true,
-    'using some tool': true
-    // ...
+    'to': true,
+    'in front of': true,
+    'in': true,
+    'inside': true,
+    'into': true,
+    'on top of': true,
+    'on': true,
+    'onto': true,
+    'upon': true,
+    'out of': true,
+    'from inside': true,
+    'from': true,
+    'over': true,
+    'through': true,
+    'under': true,
+    'underneath': true,
+    'beneath': true,
+    'behind': true,
+    'beside': true,
+    'for': true,
+    'about': true,
+    'is': true,
+    'as': true,
+    'off of': true,
+    'off': true
 };
 
-function parseArgs(tokens: string[]) {
-    var maybePrep0, maybePrep1, maybePrep2, count = tokens.length
-    for (var i = 0; i < count; i++) {
-        maybePrep0 = tokens[i] || ''
-
-        if (i < count - 1) {
-            maybePrep1 = [maybePrep0, tokens[i + 1]].join(' ')
-        }
-        else {
-            maybePrep2 = ''
-        }
-
-        if (i < count - 2) {
-            maybePrep2 = [maybePrep1, tokens[i + 2]].join(' ')
-        }
-        else {
-            maybePrep2 = ''
-        }
-
-        if (maybePrep2 in prepositions) {
-            return {
-                dobjstr: tokens.slice(0, i).join(' '),
-                prepstr: maybePrep2,
-                iobjstr: tokens.slice(i + 3).join(' ')
-            }
-        }
-        else if (maybePrep1 in prepositions) {
-            return {
-                dobjstr: tokens.slice(0, i).join(' '),
-                prepstr: maybePrep1,
-                iobjstr: tokens.slice(i + 2).join(' ')
-            }
-        }
-        else if (maybePrep0 in prepositions) {
-            return {
-                dobjstr: tokens.slice(0, i).join(' '),
-                prepstr: maybePrep0,
-                iobjstr: tokens.slice(i + 1).join(' ')
-            }
-        }
-    }
-
-    return {
-        dobjstr: tokens.join(' '),
-        prepstr: '',
-        iobjstr: ''
-    }
+function findPreposition(tokens: string[]): {start: number, length: number} {
+	var i, j, maybe, len = tokens.length;
+	for (i = 0; i < len; i++) {
+		maybe = [tokens[i], undefined, undefined];
+		if (i < len - 1) {
+			maybe[1] = tokens.slice(i, i + 2).join(' ');
+		}
+		if (i < len - 2) {
+			maybe[2] = tokens.slice(i, i + 3).join(' ');
+		}
+		for (j = 2; j >= 0; j--) {
+			if (prepositions[maybe[j]]) {
+				return { start: i, length: j + 1 };
+			}
+		}
+	}	
+	return undefined;
 }
+
+interface ParseResult {
+	verb: string;
+	args: string[];
+	dobjstr: string;
+	prepstr: string;
+	iobjstr: string;
+}
+
+function parse(buf: Buffer): ParseResult {
+	var tokens = tokenize(buf),
+		args = tokens.slice(1),
+		prepstr = '', iobjstr = '', dobjstr = '',
+		prep = findPreposition(args);
+		
+	if (prep) {
+		dobjstr = args.slice(0, prep.start).join(' ');
+		prepstr = args.slice(prep.start, prep.start + prep.length).join(' ');
+		iobjstr = args.slice(prep.start + prep.length).join(' ');
+	}
+	else {
+		dobjstr = args.join(' ');
+	}
+	
+	return {
+		verb: tokens[0],
+		args,
+		dobjstr,
+		prepstr,
+		iobjstr
+	}
+}
+
+export { parse }
