@@ -13,6 +13,7 @@ class IdGen {
 
 var ids = new IdGen();
 
+/*
 interface Object {
 	id(): number;
 	parent(): Object;
@@ -30,17 +31,19 @@ const Nothing = {
 	add: obj => {},
 	remove: obj => {}
 };
+*/
 
 function create(parent?: Object) {
-	parent = parent || Nothing;
 	let id = ids.next();
-	var contents = [];
+	var contents = [], location = undefined;
 	return {
 		id: () => id,
 		parent: () => parent,
-		location: () => Nothing,
+		location: () => location,
 		contents: () => contents,
-		add: obj => { contents.push(obj) },
+		add: obj => { 
+			contents.push(obj) 
+		},
 		remove: obj => {
 			var i = contents.indexOf(obj);
 			contents.splice(i, 1);
@@ -49,7 +52,5 @@ function create(parent?: Object) {
 }
 
 export { 
-	Object, 
-	Nothing, 
 	create 
 }
