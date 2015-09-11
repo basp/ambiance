@@ -13,26 +13,6 @@ class IdGen {
 
 var ids = new IdGen();
 
-/*
-interface Object {
-	id(): number;
-	parent(): Object;
-	location(): Object;
-	contents(): Object[];
-	add(obj: Object): void;
-	remove(obj: Object): void;
-}
-
-const Nothing = { 
-	id: () => -1,
-	parent: () => Nothing,
-	location: () => Nothing,
-	contents: () => [],
-	add: obj => {},
-	remove: obj => {}
-};
-*/
-
 function create(parent?: Object) {
 	let id = ids.next();
 	var contents = [], location = undefined;
