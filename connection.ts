@@ -51,9 +51,10 @@ class ConnectedState implements ConnectionState {
 		let argstr = data.toString('ascii');
 		let player = this.callback(args, argstr);
 		if (player) {
-			return new IdentifiedState(this.conn);	
+			this.conn.notify('*** identified ***');
+			return new IdentifiedState(this.conn, player.name);	
 		}
-		return new ConnectedState(this.conn);
+		return new ConnectedState(this.conn, this.callback);
 	}
 
 	private callback: AuthCallback;
@@ -61,15 +62,15 @@ class ConnectedState implements ConnectionState {
 }
 
 class IdentifiedState implements ConnectionState {
-	constructor(conn: Connection) {
-		this.conn = conn
-		this.conn.player = { name: 'fubar' }
+	constructor(conn: Connection, name: string) {
+		this.conn = conn;
+		this.conn.player = { name };
 	}
 	
 	handle(data) {
-		let spec = parse(data)
-		this.conn.notify(JSON.stringify(spec))
-		return new IdentifiedState(this.conn)
+		let spec = parse(data);
+		this.conn.notify(JSON.stringify(spec));
+		return new IdentifiedState(this.conn, this.conn.player.name);
 	}
 
 	private conn: Connection

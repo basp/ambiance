@@ -54,6 +54,7 @@ function findPreposition(tokens: string[]): {start: number, length: number} {
 
 interface ParseResult {
 	verb: string;
+	argstr: string;
 	args: string[];
 	dobjstr: string;
 	prepstr: string;
@@ -65,7 +66,6 @@ function parse(buf: Buffer): ParseResult {
 		args = tokens.slice(1),
 		prepstr = '', iobjstr = '', dobjstr = '',
 		prep = findPreposition(args);
-		
 	if (prep) {
 		dobjstr = args.slice(0, prep.start).join(' ');
 		prepstr = args.slice(prep.start, prep.start + prep.length).join(' ');
@@ -74,9 +74,9 @@ function parse(buf: Buffer): ParseResult {
 	else {
 		dobjstr = args.join(' ');
 	}
-	
 	return {
 		verb: tokens[0],
+		argstr: buf.toString('ascii'),
 		args,
 		dobjstr,
 		prepstr,

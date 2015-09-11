@@ -1,4 +1,4 @@
-/// <reference path="typings/tsd.d.ts" />
+1/// <reference path="typings/tsd.d.ts" />
 
 import net = require('net');
 import S = require('string');
@@ -8,19 +8,28 @@ import { Connection } from './connection';
 var connections: Connection[] = [];
 
 var players = {
-	'Vanity': {}
+	'Rayne': {
+		id: 7,
+		name: 'Rayne'
+	}
 }
 
 function auth(args: string[], argstr: string) {
-	if(S(argstr).isEmpty()) {
+	if (args.length === 0) {
 		return false;
 	}
 	
-	return players[args[0]];
+	let name = args[0];
+	let maybePlayer = players[name];
+	if (maybePlayer) {
+		return maybePlayer;
+	}
+	
+	return false;
 };
 
 var server = net.createServer(socket => {
-	var conn = new Connection(socket, auth);
+	let conn = new Connection(socket, auth);
 	connections.push(conn);
 	conn.notify('*** connected ***');
 	
@@ -33,7 +42,7 @@ var server = net.createServer(socket => {
 	});
 	
 	socket.on('close', () => {
-		var i = connections.indexOf(conn);
+		let i = connections.indexOf(conn);
 		connections.splice(i, 1);
 	});
 });
