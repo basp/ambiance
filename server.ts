@@ -1,13 +1,26 @@
 /// <reference path="typings/tsd.d.ts" />
 
 import net = require('net');
+import S = require('string');
 import byline = require('byline');
 import { Connection } from './connection';
 
 var connections: Connection[] = [];
 
+var players = {
+	'Vanity': {}
+}
+
+function auth(args: string[], argstr: string) {
+	if(S(argstr).isEmpty()) {
+		return false;
+	}
+	
+	return players[args[0]];
+};
+
 var server = net.createServer(socket => {
-	var conn = new Connection(socket);
+	var conn = new Connection(socket, auth);
 	connections.push(conn);
 	conn.notify('*** connected ***');
 	

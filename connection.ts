@@ -13,9 +13,9 @@ interface AuthCallback {
 }
 
 class Connection {
-	constructor(socket: net.Socket) {
+	constructor(socket: net.Socket, auth?: AuthCallback) {
 		this.socket = socket;
-		this.state = new ConnectedState(this);
+		this.state = new ConnectedState(this, auth);
 		this.endpoint = `${socket.remoteAddress}`;
 		this.player = undefined;
 	}
@@ -36,8 +36,9 @@ class Connection {
 }
 
 class ConnectedState implements ConnectionState {
-	constructor(conn: Connection, callback?: AuthCallback) {
+	constructor(conn: Connection, auth?: AuthCallback) {
 		this.conn = conn;
+		this.callback = auth || this.defaultAuthCallback;
 	}
 	
 	defaultAuthCallback(args: string[]) {
@@ -56,22 +57,22 @@ class ConnectedState implements ConnectionState {
 	}
 
 	private callback: AuthCallback;
-	private conn: Connection;	
+	private conn: Connection;
 }
 
 class IdentifiedState implements ConnectionState {
 	constructor(conn: Connection) {
-		this.conn = conn;
-		this.conn.player = { name: 'fubar' };
+		this.conn = conn
+		this.conn.player = { name: 'fubar' }
 	}
 	
 	handle(data) {
-		let spec = parse(data);
-		this.conn.notify(JSON.stringify(spec));
-		return new IdentifiedState(this.conn);		
+		let spec = parse(data)
+		this.conn.notify(JSON.stringify(spec))
+		return new IdentifiedState(this.conn)
 	}
 
-	private conn: Connection;	
+	private conn: Connection
 }
 
 export { ConnectionState, Connection }
