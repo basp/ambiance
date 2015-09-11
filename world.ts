@@ -1,11 +1,12 @@
 import { Generator } from './id';
 
 let ids = new Generator();
+let objects = [];
 
 function create(parent?: Object) {
 	let id = ids.next();
 	var contents = [], location = undefined;
-	return {
+	var obj = {
 		id: () => id,
 		parent: () => parent,
 		location: () => location,
@@ -18,6 +19,8 @@ function create(parent?: Object) {
 			contents.splice(i, 1);
 		}
 	}	
+	objects.push(obj);
+	return obj;
 }
 
 export { 

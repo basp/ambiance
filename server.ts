@@ -4,8 +4,6 @@ import net = require('net');
 import byline = require('byline');
 import { Connection } from './connection';
 
-const VERSION = "0.1";
-
 var connections: Connection[] = [];
 
 var server = net.createServer(socket => {
